@@ -103,10 +103,26 @@ def classify_ratio(tc_ratio, cl_present):
 
 
 def init_region_defaults(t, labels):
-    """Dynamic initial region centers/widths from current signal span."""
+    """Initialize region centers/widths, with AFM-specific defaults."""
     t = np.asarray(t, dtype=float)
     tmin, tmax = float(np.nanmin(t)), float(np.nanmax(t))
     span = max(1e-6, tmax - tmin)
+
+    # AFM defaults requested by user:
+    # CL center=1.90, T1 center=3.50, shared width=0.75.
+    # Keep label-order compatibility for forward/backward layouts.
+    labels_upper = [str(label).upper() for label in labels]
+    if set(labels_upper) == {"CL", "T1"} and len(labels_upper) == 2:
+        afm_centers = {"CL": 1.90, "T1": 3.50}
+        afm_width = 0.75
+        return {
+            label: {
+                "center": float(afm_centers[str(label).upper()]),
+                "width": float(afm_width),
+            }
+            for label in labels
+        }
+
     n = max(1, len(labels))
     centers = np.linspace(tmin + 0.2 * span, tmin + 0.8 * span, n)
     width = 0.18 * span
